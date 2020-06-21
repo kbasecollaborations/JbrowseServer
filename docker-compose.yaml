@@ -1,0 +1,23 @@
+version: '3'
+
+# This docker-compose is for running tests
+
+services:
+
+  # For running the Flask server
+  web:
+    build:
+      context: .
+      args:
+        DEVELOPMENT: 1
+    env_file: .env
+    environment:
+      - PYTHONUNBUFFERED=true
+      - FLASK_ENV=development
+      - FLASK_DEBUG=1
+      - DEVELOPMENT=1
+      - WORKERS=1
+    ports:
+      - 5000:5000
+    volumes:
+      - ${PWD}:/kb/module

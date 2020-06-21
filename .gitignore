@@ -1,0 +1,15 @@
+# Environment variables
+.env
+.idea
+
+# Caches and temp dirs
+test_local
+build
+*.pyc
+.mypy_cache
+.cache
+tmp/*
+coverage_report/
+.coverage
+__pychache__
+
