@@ -6,7 +6,10 @@ import requests
 from flask import Flask, request, Response
 from flask_cors import CORS
 from werkzeug.datastructures import Headers
-
+from kbase_workspace_client import WorkspaceClient
+import os
+from src.Utils.shock import Client as ShockClient
+import zipfile
 
 def get_node_url(path):
     return "https://" + path
@@ -46,108 +49,13 @@ def get_token(request_header):
 # TODO: COnfirm that the file server location matches with
 # TODO: space that has enough space to host files
 FILE_SERVER_LOCATION = '/kb/module/work'
-FILE_SERVER_LOCATION = '../deps/'
 # Setup Flask app.
 app = Flask(__name__, static_folder=FILE_SERVER_LOCATION)
 app.debug = True
 CORS(app, supports_credentials=True)
 
 
-@app.route("/jbrowse_query/<path:path>", methods=['GET', 'POST'])
-def streamed_proxy(path):
-    """
-    :param shock_id:
-    :return:
-    This method is used to support visualization of Variation data
-    in Jbrowse. Jbrowse sends request to this method and this service
-    returns required amount of bytes.
-    :param shock_id:
-    :return: bytes of data from shock id requested by Jbrowse
-    # token should be sent as part of cookie with kbase_session
-    # header={'Cookie': 'kbase_session=XXXXXXXXXXXXXXXXXX'}
-    # where XXXXXXXXXXXXXX is the token
-    """
-
-    # TODO: This should come from the jbrowse itself.
-    # TODO: So instead of putting it as /shock/shock_id
-    # TODO: put server/shock/shock_id the whole path of the node
-
-    node_url = get_node_url(path)
-
-    # print request.headers
-    token_resp = get_token(request.headers)
-    # print ("token_resp is" + token_resp)
-    if token_resp.startswith("Error"):
-        return token_resp
-    else:
-        token = token_resp
-
-    # Get total size of shock node
-    auth_headers = {'Authorization': ('OAuth ' + token) if token else None}
-    resp = requests.get(node_url, headers=auth_headers, allow_redirects=True)
-    rb = resp.json()
-    if rb["error"] is not None:
-        if rb["error"][0].startswith("Invalid authorization header"):
-            message = "Error: Unauthorized token"
-            print(message)
-            return message
-        else:
-            message = "Error: uncaught error" + "\n".join(rb["error"])
-            print(message)
-            return message
-    size = rb['data']['file']['size']
-    print(size)
-
-    headers = Headers()
-    status = None
-    # Handle byte range request properly
-    if "Range" in request.headers:
-        status = 206
-        ranges = findall(r"\d+", request.headers["Range"])
-
-        begin = int(ranges[0])
-        if len(ranges) > 1:
-            end = int(ranges[1])
-
-            # Request from shock with required bytes for input shock node
-            effective_node_url = node_url + '?download&seek=' + str(begin) + '&length=' + str(end - begin + 1)
-            print(effective_node_url)
-            r = requests.get(effective_node_url, headers=auth_headers, stream=True)
-            # TODO: Handle cases where this byte request goes above a certain limit
-            # TODO: Looks like jbrowse handles it based properly on chunk size but still need to be sure
-            #  Figuring this requires some  digging of Jbrowse code
-            # data = r.content
-            # Add headers
-            if end >= size:
-                end = size - 1
-            content_length = end - begin + 1
-            content_range = "bytes " + str(begin) + "-" + str(end) + "/" + str(size)
-            headers.add('Content-Length', str(content_length))
-            headers.add('Content-Range', str(content_range))
-            headers.add('Accept-Ranges', 'bytes')
-            headers.add('Connection', 'keep-alive')
-            headers.add('Cache-Control', 'public, max-age=43200')
-            # Send response with headers
-            response = Response(r.iter_content(chunk_size=10 * 1024), status=status, headers=headers)
-            return response
-    # Handle non-byte range request
-    # Needed to support smaller fasta index
-    else:
-        # server is the shock node url for downloading the whole file
-        effective_node_url = node_url + "?download_raw"
-        print(effective_node_url)
-        # Make request
-        r = requests.get(effective_node_url, headers=auth_headers, stream=True)
-        # Add headers and status
-        # print ("Status is" + r.status.code)
-        headers.add('Content-Length', r.headers['Content-Length'])
-        headers.add('Accept-Ranges', 'bytes')
-        # Create streamed response
-        response = Response(r.iter_content(chunk_size=10 * 1024), status=status, headers=headers)
-        return response
-
-
-@app.route('/dataset/<path:path>')
+@app.route('/jbrowse/<path:path>')
 def static_proxy(path):
     """
     This is used to support Jbrowse sessions.
@@ -158,7 +66,64 @@ def static_proxy(path):
     """
     # print (path)
     # send_static_file will guess the correct MIME type
-    print (request.headers)
+
+    print ("Authenticating")
+    token = None
+    # 1) Make sure request is authenticated and has kbase_session in cookie
+    token_resp = get_token(request.headers)
+    if token_resp.startswith("Error"):
+        return token_resp
+    else:
+        token = token_resp
+
+    if token is None:
+        return '{"error":"Unauthorized access"}'
+
+    # TODO: Sanitize path properly
+    # TODO: Add more checks
+    # 2) Get workspace object ref check if things are cached
+
+    p = path.split("/")
+    ref = p[0] + "/" + p[1] + "/" + p[2]
+    dir = FILE_SERVER_LOCATION + "/" + ref
+    tracklist_path = dir + "/data/trackList.json"
+    if os.path.exists(tracklist_path):
+        print ("Serving cached track information")
+        return app.send_static_file(path)
+
+
+    print ("Getting workspace data")
+    kbase_endpoint = os.environ.get('KBASE_ENDPOINT', 'https://ci.kbase.us/services')
+    ws = WorkspaceClient(kbase_endpoint, token=token)
+    try:
+        genomic_indexes = ws.req("get_objects2", {'objects': [{"ref": ref}]})['data'][0]['data']['genomic_indexes']
+    except:
+        raise ValueError ("Can not access object")
+        return '{"Error": "Cannot access object"}'
+
+    print ("Getting jbrowse.zip")
+    # 3) Get shock node for the jbrowse instance
+    shock_node = None
+    for g in genomic_indexes:
+        f = g.get('file_name')
+        if f=='jbrowse.zip':
+            shock_node = g.get('id')
+    if shock_node is None:
+        return '{"Error": "cannot find Jbrowse data node"}'
+
+    shock_url = kbase_endpoint + "/shock-api"
+    shock = ShockClient(shock_url, token)
+    if not os.path.isdir(dir):
+        os.makedirs(dir)
+    filename = os.path.join(dir, "jbrowse.zip")
+    pathx = os.path.join("/kb/module/work", filename)
+    data_zip_file = shock.download_to_path(shock_node, pathx)
+
+    with zipfile.ZipFile(data_zip_file, 'r') as zip_ref:
+        zip_ref.extractall(dir)
+
+    print ("Final list of files")
+    print (os.listdir(dir))
     return app.send_static_file(path)
 
 
