@@ -64,7 +64,7 @@ def static_proxy(path):
     :param path: path to the file on the system
     :return: content of the file
     """
-    # print (path)
+    print (path)
     # send_static_file will guess the correct MIME type
 
     print ("Authenticating")
@@ -85,21 +85,26 @@ def static_proxy(path):
 
     p = path.split("/")
     ref = p[0] + "/" + p[1] + "/" + p[2]
+    print (ref)
+
+    print ("Getting workspace data")
+    # Need to make sure the first time a user is accessing this
+    # we get the workspace object so that shock nodes are properly shared 
+    if (p[3]=="index.html"):
+        kbase_endpoint = os.environ.get('KBASE_ENDPOINT', 'https://ci.kbase.us/services')
+        ws = WorkspaceClient(kbase_endpoint, token=token)
+        try:
+            genomic_indexes = ws.req("get_objects2", {'objects': [{"ref": ref}]})['data'][0]['data']['genomic_indexes']
+        except:
+            raise ValueError ("Can not access object")
+            return '{"Error": "Cannot access object"}'
+
     dir = FILE_SERVER_LOCATION + "/" + ref
     tracklist_path = dir + "/data/trackList.json"
     if os.path.exists(tracklist_path):
         print ("Serving cached track information")
         return app.send_static_file(path)
 
-
-    print ("Getting workspace data")
-    kbase_endpoint = os.environ.get('KBASE_ENDPOINT', 'https://ci.kbase.us/services')
-    ws = WorkspaceClient(kbase_endpoint, token=token)
-    try:
-        genomic_indexes = ws.req("get_objects2", {'objects': [{"ref": ref}]})['data'][0]['data']['genomic_indexes']
-    except:
-        raise ValueError ("Can not access object")
-        return '{"Error": "Cannot access object"}'
 
     print ("Getting jbrowse.zip")
     # 3) Get shock node for the jbrowse instance
