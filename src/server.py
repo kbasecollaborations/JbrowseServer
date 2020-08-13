@@ -6,9 +6,15 @@ import requests
 from flask import Flask, request, Response
 from flask_cors import CORS
 from werkzeug.datastructures import Headers
-from kbase_workspace_client import WorkspaceClient
+#from kbase_workspace_client import WorkspaceClient
+
+
+
 import os
 from src.Utils.shock import Client as ShockClient
+from src.Utils.Workspace import Workspace
+
+
 import zipfile
 
 def get_node_url(path):
@@ -90,11 +96,16 @@ def static_proxy(path):
     print ("Getting workspace data")
     # Need to make sure the first time a user is accessing this
     # we get the workspace object so that shock nodes are properly shared 
+
+    #TODO: We are assuming the first call will always index.html which may or may not be the case
+    #TODO: So put fix for the case where first call may be something like index.html
+    #TODO: test for the presence of the directory as well.
     if (p[3]=="index.html"):
         kbase_endpoint = os.environ.get('KBASE_ENDPOINT', 'https://ci.kbase.us/services')
-        ws = WorkspaceClient(kbase_endpoint, token=token)
+        ws_url = kbase_endpoint + "/ws"
+        ws = Workspace(ws_url, token)
         try:
-            genomic_indexes = ws.req("get_objects2", {'objects': [{"ref": ref}]})['data'][0]['data']['genomic_indexes']
+            genomic_indexes = ws.get_objects2( {'objects':[{"ref":, ref 'included': ['/genomic_indexes']}]})['data'][0]['data']
         except:
             raise ValueError ("Can not access object")
             return '{"Error": "Cannot access object"}'
