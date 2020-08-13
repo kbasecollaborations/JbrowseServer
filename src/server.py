@@ -103,9 +103,10 @@ def static_proxy(path):
     if (p[3]=="index.html"):
         kbase_endpoint = os.environ.get('KBASE_ENDPOINT', 'https://ci.kbase.us/services')
         ws_url = kbase_endpoint + "/ws"
-        ws = Workspace(ws_url, token)
+        ws = Workspace(url=ws_url, token=token)
         try:
-            genomic_indexes = ws.get_objects2( {'objects':[{"ref": ref,'included': ['/genomic_indexes']}]})['data'][0]['data']
+            genomic_indexes = ws.get_objects2( {'objects':[{"ref": ref,'included': ['/genomic_indexes']}]})['data'][0]['data']['genomic_indexes']
+            print (genomic_indexes)
         except:
             raise ValueError ("Can not access object")
             return '{"Error": "Cannot access object"}'
@@ -115,17 +116,23 @@ def static_proxy(path):
     if os.path.exists(tracklist_path):
         print ("Serving cached track information")
         return app.send_static_file(path)
+    else:
+        print ("Building Jbrowse path")
+        
 
 
     print ("Getting jbrowse.zip")
     # 3) Get shock node for the jbrowse instance
     shock_node = None
+    print (genomic_indexes)
     for g in genomic_indexes:
+        print (g)
         f = g.get('file_name')
         if f=='jbrowse.zip':
             shock_node = g.get('id')
     if shock_node is None:
         return '{"Error": "cannot find Jbrowse data node"}'
+
 
     shock_url = kbase_endpoint + "/shock-api"
     shock = ShockClient(shock_url, token)
