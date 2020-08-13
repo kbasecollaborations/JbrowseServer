@@ -105,7 +105,7 @@ def static_proxy(path):
         ws_url = kbase_endpoint + "/ws"
         ws = Workspace(ws_url, token)
         try:
-            genomic_indexes = ws.get_objects2( {'objects':[{"ref":, ref 'included': ['/genomic_indexes']}]})['data'][0]['data']
+            genomic_indexes = ws.get_objects2( {'objects':[{"ref": ref,'included': ['/genomic_indexes']}]})['data'][0]['data']
         except:
             raise ValueError ("Can not access object")
             return '{"Error": "Cannot access object"}'
