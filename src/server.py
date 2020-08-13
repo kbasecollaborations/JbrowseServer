@@ -12,7 +12,7 @@ from werkzeug.datastructures import Headers
 
 import os
 from src.Utils.shock import Client as ShockClient
-from src.Utils.Workspace import Workspace
+from src.Utils.WorkspaceClient import Workspace
 
 
 import zipfile
