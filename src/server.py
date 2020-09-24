@@ -75,17 +75,20 @@ def static_proxy(path):
 
     print ("Authenticating")
     token = None
+    # revoke token
+    token = "OONOJM7VSVEYSONWGOIY6BVYOHCM3QST"
     # 1) Make sure request is authenticated and has kbase_session in cookie
-    print (request.headers)
-    token_resp = get_token(request.headers)
-    if token_resp.startswith("Error"):
-        return token_resp
-    else:
-        token = token_resp
+    #print (request.headers)
+    #token_resp = get_token(request.headers)
+    #if token_resp.startswith("Error"):
+    #    return token_resp
+    #else:
+    #    token = token_resp
 
-    if token is None:
-        return '{"error":"Unauthorized access"}'
+    #if token is None:
+    #    return '{"error":"Unauthorized access"}'
 
+    
     # TODO: Sanitize path properly
     # TODO: Add more checks
     # 2) Get workspace object ref check if things are cached
