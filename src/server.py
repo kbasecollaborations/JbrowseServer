@@ -76,6 +76,7 @@ def static_proxy(path):
     print ("Authenticating")
     token = None
     # 1) Make sure request is authenticated and has kbase_session in cookie
+    print (request.headers)
     token_resp = get_token(request.headers)
     if token_resp.startswith("Error"):
         return token_resp
