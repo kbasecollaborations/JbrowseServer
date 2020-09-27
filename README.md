@@ -3,22 +3,25 @@
 ## To test locally
 </br>
 
-(copy .env.example to .env and update token information in .env)
+(copy .env.example to .env and update token and environment information in .env)
 </br>
 <code>cp .env.example  .env</code>
+```
+KBASE_ENDPOINT=https://appdev.kbase.us/services
+token=DIBQOM62C4LBIPAJZEMG3C45ST4LP2TS
+```
 
 </br>
 <code>docker-compose up</code>
-
 </br>
-Run tests with (currently working for  appdev)
+
+## Run tests 
 
 </br>
 <code>docker-compose run web test </code>
 </br>
 
-## To test in appdev or ci or any other environment use following in 
-## narrative code cell
+## To test in narrative code cell
 
 ```python
 
@@ -47,7 +50,7 @@ def display_variation_in_jbrowse(variation_ref):
 ```
 
 
-### Appdev variation reference "47506/18/1"
+## Appdev variation reference "47506/18/1"
 ```python
 variation_ref = "47506/18/1"
 display_variation_in_jbrowse(variation_ref)
