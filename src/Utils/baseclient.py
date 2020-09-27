@@ -8,9 +8,10 @@
 from __future__ import print_function
 
 import json as _json
-import requests as _requests
-import random as _random
 import os as _os
+
+import random as _random
+import requests as _requests
 import traceback as _traceback
 from requests.exceptions import ConnectionError
 from urllib3.exceptions import ProtocolError
@@ -53,8 +54,8 @@ def _get_token(user_id, password, auth_svc):
 
 
 def _read_inifile(file=_os.environ.get(  # @ReservedAssignment
-                  'KB_DEPLOYMENT_CONFIG', _os.environ['HOME'] +
-                  '/.kbase_config')):
+    'KB_DEPLOYMENT_CONFIG', _os.environ['HOME'] +
+                            '/.kbase_config')):
     # Another bandaid to read in the ~/.kbase_config file if one is present
     authdata = None
     if _os.path.exists(file):
@@ -63,10 +64,10 @@ def _read_inifile(file=_os.environ.get(  # @ReservedAssignment
             config.read(file)
             # strip down whatever we read to only what is legit
             authdata = {x: config.get('authentication', x)
-                        if config.has_option('authentication', x)
-                        else None for x in ('user_id', 'token',
-                                            'client_secret', 'keyfile',
-                                            'keyfile_passphrase', 'password')}
+            if config.has_option('authentication', x)
+            else None for x in ('user_id', 'token',
+                                'client_secret', 'keyfile',
+                                'keyfile_passphrase', 'password')}
         except Exception as e:
             print('Error while reading INI file {}: {}'.format(file, e))
     return authdata
@@ -84,7 +85,7 @@ class ServerError(Exception):
 
     def __str__(self):
         return self.name + ': ' + str(self.code) + '. ' + self.message + \
-            '\n' + self.data
+               '\n' + self.data
 
 
 class _JSONObjectEncoder(_json.JSONEncoder):
@@ -121,6 +122,7 @@ class BaseClient(object):
     async_job_check_time_ms - the wait time between checking job state for
         asynchronous jobs run with the run_job method.
     '''
+
     def __init__(
             self, url=None, timeout=30 * 60, user_id=None,
             password=None, token=None, ignore_authrc=False,
@@ -157,8 +159,8 @@ class BaseClient(object):
             if authdata is not None:
                 if authdata.get('token') is not None:
                     self._headers['AUTHORIZATION'] = authdata['token']
-                elif(authdata.get('user_id') is not None and
-                        authdata.get('password') is not None):
+                elif (authdata.get('user_id') is not None and
+                      authdata.get('password') is not None):
                     self._headers['AUTHORIZATION'] = _get_token(
                         authdata['user_id'], authdata['password'], auth_svc)
         if self.timeout < 1:

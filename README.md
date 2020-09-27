@@ -21,17 +21,13 @@ Run tests with (currently working for  appdev)
 <p>
 Once the service is running, it can also be tested in the following way.
 The following can be adapted for any environment by changing url and 
-using token for the environment
+
+
+http://0.0.0.0:5000/jbrowse/x/y/z/index.html
+
+eg for appdev settings in .env you can look at 
+http://0.0.0.0:5000/jbrowse/47506/18/1/index.html 
+
 </p>
 
-```python
-shock_id = "ad4ebf34-49fa-41b0-ab4c-9358d46a352b"
-token = "**********"
-kbase_session_token = "kbase_session=" + token
-header={'Cookie': kbase_session_token, 'Range': 'bytes:6-10'}
-# appdev.kbase.us/services/shock-api/node/ad4ebf34-49fa-41b0-ab4c-9358d46a352b in the following code
-# can be changed to url for any environment
-url = "http://127.0.0.1:5000/jbrowse_query/appdev.kbase.us/services/shock-api/node/ad4ebf34-49fa-41b0-ab4c-9358d46a352b"
-response = requests.post(url, headers=header)
-```
 
