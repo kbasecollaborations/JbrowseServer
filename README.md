@@ -1,7 +1,6 @@
-Dyanmic server to support byte ranges for variation workflows
+# Jbrowse based visualization of variation data
 
-
-To test 
+## To test locally
 </br>
 
 (copy .env.example to .env and update token information in .env)
@@ -18,16 +17,40 @@ Run tests with (currently working for  appdev)
 <code>docker-compose run web test </code>
 </br>
 
-<p>
-Once the service is running, it can also be tested in the following way.
-The following can be adapted for any environment by changing url and 
+## To test in appdev or ci or any other environment use following in 
+## narrative code cell
+
+```python
+
+def display_variation_in_jbrowse(variation_ref):
+    '''
+    '''
+    import requests
+    import json
+    from IPython.display import IFrame
+    
+    config_env = os.environ['CONFIG_ENV']
+    if (config_env=="prod"):
+        service_wizard_url = "https://kbase.us/services/service_wizard"
+    else:
+        service_wizard_url = "https://" + config_env + ".kbase.us/services/service_wizard"
+        json_obj = {
+            "method": "ServiceWizard.get_service_status",
+            "id": "",
+            "params": [{"module_name": "JbrowseServer", "version": "dev"}]
+        }
+    
+    sw_resp = requests.post(url=service_wizard_url, data=json.dumps(json_obj))
+    ju = sw_resp.json()
+    jbrowse_url = ju['result'][0]['url'] + "/jbrowse/" + variation_ref + "/index.html"
+    return (IFrame(src=jbrowse_url, width=1200, height=400))
+```
 
 
-http://0.0.0.0:5000/jbrowse/x/y/z/index.html
-
-eg for appdev settings in .env you can look at 
-http://0.0.0.0:5000/jbrowse/47506/18/1/index.html 
-
-</p>
-
+### Appdev variation reference "47506/18/1"
+```python
+variation_ref = "47506/18/1"
+display_variation_in_jbrowse(variation_ref)
+```
+![image](img/jbrowse.png)
 
