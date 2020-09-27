@@ -67,7 +67,7 @@ def get_token(request_header):
         cookie_rawdata = request_header['Cookie'].split(";")
         # print (cookie_rawdata)
     except Exception:
-        message = "Error:Missing Cookie in header {'Cookie': 'kbase_session=XXXXXXXXXX'}"
+        message = "Error:Missing Cookie in header {'Cookie': 'kbase_session_backup=XXXXXXXXXX'}"
         print(message)
         return message
 
@@ -75,16 +75,16 @@ def get_token(request_header):
     for c in cookie_rawdata:
         key, value = c.strip().split("=")
         cookie_dict[key] = value
-    if 'kbase_session' in cookie_dict:
-        token = cookie_dict['kbase_session']
+    if 'kbase_session_backup' in cookie_dict:
+        token = cookie_dict['kbase_session_backup']
         if len(token.strip()) == 0:
             message = "Error: empty token"
             print(message)
             return message
         else:
-            return cookie_dict['kbase_session']
+            return cookie_dict['kbase_session_backup']
     else:
-        message = "Error: Missing kbase_session in Cookie {'Cookie': 'kbase_session=XXXXXXXXXX'}"
+        message = "Error: Missing kbase_session_backup in Cookie {'Cookie': 'kbase_session_backup=XXXXXXXXXX'}"
         print(message)
         return message
 
@@ -127,7 +127,7 @@ def static_proxy(path):
     KBASE_ENDPOINT = os.environ.get('KBASE_ENDPOINT')
     print("Authenticating")
     token = None
-    # 1) Make sure request is authenticated and has kbase_session in cookie
+    # 1) Make sure request is authenticated and has kbase_session_backup in cookie
     token_resp = get_token(request.headers)
     if token_resp.startswith("Error"):
         return token_resp

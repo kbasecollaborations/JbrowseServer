@@ -18,7 +18,7 @@ if KBASE_ENDPOINT is None:
 
 print ("kbase end point is :" + KBASE_ENDPOINT)
 base_url = 'http://web:5000'
-cookie_info = "kbase_session=" + token
+cookie_info = "kbase_session_backup=" + token
 
 
 def make_request(url, headers):
