@@ -8,7 +8,7 @@
 <code>cp .env.example  .env</code>
 ```
 KBASE_ENDPOINT=https://appdev.kbase.us/services
-token=DIBQOM62C4LBIPAJZEMG3C45ST4LP2TS
+token=***********************
 ```
 </br>
 
