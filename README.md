@@ -10,16 +10,12 @@
 KBASE_ENDPOINT=https://appdev.kbase.us/services
 token=DIBQOM62C4LBIPAJZEMG3C45ST4LP2TS
 ```
-
-</br>
-<code>docker-compose up</code>
 </br>
 
 ## Run tests 
-
-</br>
+<code>docker-compose up</code>
+In a separate terminal run
 <code>docker-compose run web test </code>
-</br>
 
 ## To test in narrative code cell
 
