@@ -33,7 +33,7 @@ def display_variation_in_jbrowse(variation_ref):
         service_wizard_url = "https://kbase.us/services/service_wizard"
     else:
         service_wizard_url = "https://" + config_env + ".kbase.us/services/service_wizard"
-        json_obj = {
+    json_obj = {
             "method": "ServiceWizard.get_service_status",
             "id": "",
             "params": [{"module_name": "JbrowseServer", "version": "dev"}]
