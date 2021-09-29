@@ -1,7 +1,7 @@
 module-name: JbrowseServer
 module-description: Jbrowse Server
 service-language: python
-module-version: 0.1.0
+module-version: 0.2.0
 owners: [pranjan77]
 service-config:
   dynamic-service: true
