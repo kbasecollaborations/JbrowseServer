@@ -27,7 +27,7 @@ def get_variation_file_service_url():
     json_obj = {
         "method": "ServiceWizard.get_service_status",
         "id": "",
-        "params": [{"module_name": "VariationFileServ", "version": "beta"}]
+        "params": [{"module_name": "VariationFileServ", "version": "dev"}]
     }
     kbase_endpoint = os.environ.get('KBASE_ENDPOINT')
     sw_url = kbase_endpoint + "/service_wizard"
